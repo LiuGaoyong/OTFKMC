@@ -1,0 +1,98 @@
+[build-system]
+requires = ["uv_build>=0.11.15,<0.12"]
+build-backend = "uv_build"
+
+[project.urls]
+Homepage = "https://github.com/LiuGaoyong/OTFKMC"
+Repository = "https://github.com/LiuGaoyong/OTFKMC"
+Issues = "https://github.com/LiuGaoyong/OTFKMC/issues/"
+
+[project]
+name = "otfkmc"
+version = "0.0.1"
+readme = "README.md"
+description = "On-the-fly Kinetic Monte Carlo Simulation."
+authors = [{ name = "LiuGaoyong", email = "liugaoyong_88@163.com" }]
+license-files = ["src/LICENSE"]
+license = "GPL-3.0-or-later"
+requires-python = ">=3.12"
+keywords = [
+    "chemistry",    #
+    "graph theory",
+    "reaction",
+    "event",
+    "KMC",
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Topic :: Scientific/Engineering :: Chemistry',
+    'Intended Audience :: Science/Research',
+]
+dependencies = [
+    "ase>=3.24",
+    "graphatoms>=1.2.1", # Graph-based Atomistic Representation
+    # Data Model
+    "h5py>=3.16",
+    "hydra-core",
+    "ovld",              # singledispatch which works for multiple dispatching
+    "ray>=2.50.0,<3",    # parallel computing
+    "typing-extensions",
+    "loguru",
+    "adsorption>=0.1.2",
+    "joblib>=1.5.3",
+
+    "einops>=0.8",
+    "igraph>=0.11",
+    "joblib>=1.4",
+    "loguru>=0.7",
+    "pandas>=2.2",
+    "pydantic>=2.7",
+    "pydantic-yaml>=1.4",
+    "ray[default]>=2.43",
+    "rdkit>=2024.9",
+    "scikit-learn>=1.5",
+    "scipy>=1.12",
+    "typing-extensions>=4.12",
+]
+[dependency-groups]
+dev = ["ruff>=0.11", "pytest>=8.3", "pytest-xdist"]
+
+# uv config
+[tool.uv]
+package = true
+[[tool.uv.index]]
+url = "https://mirrors.cernet.edu.cn/pypi/web/simple" # CERNET
+default = true
+# [[tool.uv.index]]
+# name = "pytorch-cpu"
+# url = "https://mirrors.nju.edu.cn/pytorch/whl/cpu/"
+# explicit = true
+# format = "flat"
+# [tool.uv.sources]
+# torch = [{ index = "pytorch-cpu" }]
+[project.scripts]
+otfkmc-run = "otfkmc.enterpoint:run"
+
+# pytest config
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error", # All other warnings are transformed into errors.
+    # ignore the following warnings that matching a regex
+    # example: 'ignore:function ham\(\) is deprecated:DeprecationWarning',
+    "ignore::RuntimeWarning",
+    "ignore::DeprecationWarning",
+
+]
+addopts = '--maxfail=1 -rf' # exit after 1 failures, report fail info
+testpaths = ['src/tests']
+
+# ruff config
+[tool.ruff]
+line-length = 80
+indent-width = 4
+unsafe-fixes = true
+[tool.ruff.lint]
+select = ["F", "E", "W", "UP", "TID"]
+ignore = ["F722", "D100"]
+[tool.ruff.lint.pydocstyle]
+convention = "google"

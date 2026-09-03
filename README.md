@@ -1,2 +1,3 @@
 # OTFKMC
-On-The-Fly Kinetic Monte Carlo.
+
+Off-Lattice Kinetic Monte Carlo
