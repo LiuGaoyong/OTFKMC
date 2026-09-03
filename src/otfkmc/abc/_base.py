@@ -21,13 +21,24 @@ class Base:
 
     def __init__(self, *, config: DictConfig) -> None:
         assert isinstance(config, DictConfig)
-        hydracfg = hydra.core.hydra_config.HydraConfig.get()  # type: ignore
-        outlogfile = str(hydracfg.job_logging.handlers.file.filename)
-        outlogfile = str(config.get("logfile", outlogfile))
-        loglevel = str(config.get("loglevel", "DEBUG"))
+        self.config: DictConfig = config
+        self.path = Path(config.output)
+        self.path.mkdir(parents=True, exist_ok=True)
+        for k in ["minima", "gas", "ts"]:
+            (self.path / k).mkdir(parents=True, exist_ok=True)
+        self.network_path = self.path / "network.lgl"
+        self.network = Graph(directed=False)
 
-        logname = Path(outlogfile).name
-        logfile = self.path.joinpath(logname)
+        loglevel = str(config.get("loglevel", "DEBUG"))
+        try:
+            hydracfg = hydra.core.hydra_config.HydraConfig.get()  # type: ignore
+            outlogfile = str(hydracfg.job_logging.handlers.file.filename)
+        except Exception:
+            outlogfile = hydracfg = None
+        outlogfile = config.get("logfile", outlogfile)
+        assert outlogfile is not None
+        outlogfile = str(outlogfile)
+
         self.logger = log = Logger(
             core=Core(),
             exception=None,
@@ -41,19 +52,23 @@ class Base:
             extra={},
         )
         log.add(sys.stderr, level=loglevel)
-        log.add(logfile, level=loglevel)
+        logname = Path(outlogfile).name
+        if logname != "-":
+            logfile = self.path.joinpath(logname)
+            log.add(logfile, level=loglevel)
 
         log.info("=" * 64)
         log.info("The Configuration:\n" + OmegaConf.to_yaml(config))
         log.info(f"Working directory : {os.getcwd()}")
-        log.info(f"Output directory  : {hydracfg.runtime.output_dir}")
+        if hydracfg is not None:
+            log.info(f"Output directory  : {hydracfg.runtime.output_dir}")
         log.info(f"Output logfile    : {outlogfile}")
         log.info(f"Output loglevel   : {loglevel.upper()}")
         log.info("=" * 64)
 
         # check something
         parallel = str(config.parallel).lower()
-        if hydracfg.mode == "MULTIRUN":
+        if hydracfg is not None and hydracfg.mode == "MULTIRUN":
             if parallel != "serial":
                 raise ValueError(
                     "Please delete '--multirun,-m' option "
@@ -66,14 +81,6 @@ class Base:
             "choose one from 'serial', 'joblib', or 'ray'."
         )
         self.pmode: Literal["serail", "joblib", "ray"] = parallel  # type: ignore
-
-        self.config: DictConfig = config
-        self.path = Path(config.output)
-        self.path.mkdir(parents=True, exist_ok=True)
-        for k in ["minima", "gas", "ts"]:
-            (self.path / k).mkdir(parents=True, exist_ok=True)
-        self.network_path = self.path / "network.lgl"
-        self.network = Graph(directed=False)
 
     def cluster_path(
         self,

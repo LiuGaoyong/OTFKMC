@@ -81,6 +81,7 @@ filterwarnings = [
     # example: 'ignore:function ham\(\) is deprecated:DeprecationWarning',
     "ignore::RuntimeWarning",
     "ignore::DeprecationWarning",
+    "ignore::hydra.errors.Hydra14MigrationWarning",
 
 ]
 addopts = '--maxfail=1 -rf' # exit after 1 failures, report fail info

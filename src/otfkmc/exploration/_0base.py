@@ -17,7 +17,7 @@ from ase.units import invcm
 from ase.vibrations import Vibrations, VibrationsData
 from graphatoms.system import Cluster, Gas
 
-from otfkmc.abc.expl import ExplABC
+from otfkmc.abc import ExplABC
 
 from ._funcs import call_dimer as _dimer
 from ._funcs import call_neb as _neb

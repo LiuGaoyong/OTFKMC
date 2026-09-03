@@ -5,7 +5,7 @@ from ase.calculators.calculator import Calculator
 from graphatoms.system import System
 from graphatoms.utils.parser import hydra_parse
 
-from .base import Base, DictConfig
+from ._base import Base, DictConfig
 
 if TYPE_CHECKING:
 
