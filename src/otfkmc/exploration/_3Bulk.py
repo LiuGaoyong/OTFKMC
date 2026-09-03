@@ -3,8 +3,8 @@ from typing import override
 
 from graphatoms.system import Cluster, System
 
+from otfkmc.exploration._2expl_0_Base import SecondStepABC
 from otfkmc.runner._1parser import FirstStep
-from otfkmc.runner._2expl_0_Base import SecondStepABC
 
 
 class SecondStepBulk(SecondStepABC):

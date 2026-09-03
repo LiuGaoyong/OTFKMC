@@ -4,7 +4,7 @@ import os
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-from otfkmc.runner._2explorer import SecondStep
+from otfkmc.exploration._2explorer import SecondStep
 from otfkmc.runner._3match import ThirdStep
 
 log = logging.getLogger(__name__)

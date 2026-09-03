@@ -13,26 +13,23 @@ from typing import IO, Literal
 import numpy as np
 from ase import Atoms
 from ase.calculators.calculator import Calculator
-from ase.symbols import Symbols
 from ase.units import invcm
 from ase.vibrations import Vibrations, VibrationsData
 from graphatoms.system import Cluster, Gas
-from graphatoms.utils.parser import hydra_parse
-from igraph import Graph
-from omegaconf import DictConfig
 
-# from adsorption.common.optimize import call_dimer as _dimer
-# from adsorption.common.optimize import call_neb as _neb
-# from adsorption.common.optimize import optimize as _optimize
-from otfkmc.exploration import call_dimer as _dimer
-from otfkmc.exploration import call_neb as _neb
-from otfkmc.exploration import optimize as _optimize
+from otfkmc.abc.expl import ExplABC
+
+from ._funcs import call_dimer as _dimer
+from ._funcs import call_neb as _neb
+from ._funcs import optimize as _optimize
 
 
-class ExplorationBase:
-    def __init__(self, *, calculator: Calculator, **kwargs) -> None:
-        assert isinstance(calculator, Calculator)
-        self.calculator = calculator
+class ExplorationBase(ExplABC):
+    class OptimizationFailed(RuntimeError):
+        """Optimization failed."""
+
+    class CheckMinimaFailed(RuntimeError):
+        """Check minima failed."""
 
     def optimize(
         self,
@@ -247,75 +244,74 @@ class ExplorationBase:
         freq[np.abs(freq) < 1e-5] = 1e-5
         return freq, modes
 
-
-class BaseOTFKMC(ExplorationBase):
-    def __init__(self, *, config: DictConfig) -> None:
-        calc = hydra_parse(config.calculator, Calculator)
-        super().__init__(calculator=calc)
-        self.config: DictConfig = config
-        self.path = Path(config.output)
-        self.path.mkdir(parents=True, exist_ok=True)
-        for k in ["minima", "gas", "ts"]:
-            (self.path / k).mkdir(parents=True, exist_ok=True)
-        self.network_path = self.path / "network.lgl"
-        self.network = Graph(directed=False)
-
-    def cluster_path(
+    def cluster_optimization(
         self,
         cluster: Cluster | Gas,
         *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> Path:
-        """Get the path to the cluster."""
+        type: str | Literal["minima", "gas"] = "minima",
+    ) -> Cluster | Gas:
+        """Optimize the clusters."""
         if isinstance(cluster, Gas):
-            type = "gas"
+            CLS, type = Gas, "gas"
         else:
-            assert isinstance(cluster, Cluster)
-            assert type in ("minima", "ts")
-        symbols: Symbols = cluster.symbols
-        fml: str = symbols.get_chemical_formula("metal")
-        p = self.path / type / fml
-        # if type != "gas":
-        #     p = p.parent / f"{cluster.ncore}_{p.name}"
-        if not p.exists():
-            p.mkdir(parents=True, exist_ok=True)
-        return p / f"{cluster.hash}.npz"
+            CLS, type = Cluster, "minima"
 
-    def cluster_save(
-        self,
-        cluster: Cluster | Gas,
-        *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> None:
-        """Save the cluster."""
-        cluster.write_npz(self.cluster_path(cluster=cluster, type=type))
-
-    def cluster_exists(
-        self,
-        cluster: Cluster | Gas,
-        *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> bool:
-        """Check if the cluster exists."""
-        return self.cluster_path(cluster=cluster, type=type).exists()
-
-    def cluster_check(
-        self,
-        cluster: Cluster | Gas,
-        *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> bool:
-        event: DictConfig = self.config.event
-        fmax = float(event.get("max_force", 0.05))
-        if type == "ts":
-            assert isinstance(cluster, Cluster)
-            mfreq_ts = float(event.get("min_frequency_for_ts", 50.0))
-            return cluster.check_ts(fmax, mfreq_ts)
-        elif isinstance(cluster, Gas) or type == "minima":
-            mfreq_minima = float(event.get("min_frequency", 30.0))
-            return cluster.check_minima(fmax, mfreq_minima)
+        p = self.cluster_path(cluster=cluster, type=type)
+        if p.exists():
+            result: Cluster | Gas = CLS.read_npz(p)
+            print(f"Read {result.__class__.__name__.lower()}:", p)
         else:
-            raise ValueError(
-                f"Unknown type={type}, or type(cluster)="  #
-                f"{cluster.__class__.__name__}"
+            print("Optimization (start):", cluster)
+            lst, cvrg = self.optimize(
+                atoms=cluster.to_ase().copy(),
+                method=str(self.config.optimizer.method).upper(),
+                max_steps=int(self.config.optimizer.steps),
+                fmax=float(self.config.optimizer.fmax),
             )
+
+            if cvrg:
+                new_atoms = lst[-1]
+                print("Optimization (end):", cluster)
+                freq, _ = self.vib(atoms=new_atoms)
+                f = new_atoms.get_forces()
+                if type == "minima":
+                    result = Cluster.from_ase(
+                        atoms=new_atoms,
+                        parse_bonds=self.config.bonds,
+                        parse_bonds_distance=False,
+                        parse_bonds_order=False,
+                        energy=new_atoms.get_potential_energy(),
+                        fmax=np.linalg.norm(f, axis=1).max(),
+                        frequencies=freq,
+                        nadsorbate=0,
+                    )
+                else:
+                    result = Gas.from_ase(
+                        atoms=new_atoms,
+                        sticking=cluster.sticking,  # type: ignore
+                        pressure=cluster.pressure,  # type: ignore
+                        parse_bonds=self.config.bonds,
+                        energy=new_atoms.get_potential_energy(),
+                        fmax=np.linalg.norm(f, axis=1).max(),
+                        parse_bonds_distance=False,
+                        parse_bonds_order=False,
+                        frequencies=freq,
+                    )
+                assert isinstance(result, (Cluster, Gas))
+                print("Vibration frequencies:", freq[:2], "for", result)
+            else:
+                raise self.OptimizationFailed(
+                    f"Optimization (failed): {cluster}."
+                )
+            self.cluster_save(cluster=result, type=type)
+        if not self.cluster_check(result, type=type):
+            raise self.CheckMinimaFailed(
+                result.energy,
+                result.fmax,
+                result.frequencies,
+            )
+        if type == "minima":
+            p = self.cluster_path(cluster=result, type=type)
+            s = p.relative_to(self.path).as_posix()
+            self.network.add_vertex(name=s)
+        return result

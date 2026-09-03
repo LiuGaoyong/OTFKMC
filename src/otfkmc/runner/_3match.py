@@ -5,10 +5,8 @@ import numpy as np
 from graphatoms.system import Cluster, System
 from igraph import Graph
 
-from otfkmc.runner._1parser import FirstStep
 
-
-class ThirdStep(FirstStep):
+class ThirdStep:
     def match(self, system: System | None = None) -> None:
         """Matching of the catalyst elemental reaction."""
         if system is None:

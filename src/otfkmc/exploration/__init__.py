@@ -1,13 +1,15 @@
+"""The module of reaction exploration."""
+
 from typing import override
 
 from graphatoms.system import System
 
-from otfkmc.runner._2expl_1_Surf import SecondStepSurface as Surf
-from otfkmc.runner._2expl_2_Ads import SecondStepAds as Ads
-from otfkmc.runner._2expl_3_Bulk import SecondStepBulk as Bulk
+from otfkmc.exploration._1Surf import SecondStepSurface as Surf
+from otfkmc.exploration._2Ads import SecondStepAds as Ads
+from otfkmc.exploration._3Bulk import SecondStepBulk as Bulk
 
 
-class SecondStep(Ads, Bulk, Surf):
+class Exploration(Ads, Bulk, Surf):
     """The class for exploring the surface process."""
 
     @override
