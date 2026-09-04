@@ -18,7 +18,7 @@ from conftest import return_big_object  # type: ignore # noqa: E402
         "loky",
         "multiprocessing",
         "ray",
-        "dask",
+        # "dask",
     ],
 )
 def test_joblib(backend: str) -> None:

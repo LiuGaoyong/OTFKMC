@@ -34,32 +34,23 @@ dependencies = [
     # Data Model
     "h5py>=3.16",
     "hydra-core",
-    "ovld",              # singledispatch which works for multiple dispatching
-    "ray>=2.50.0,<3",    # parallel computing
+    "joblib>=1.5.3",
+    "ovld",           # singledispatch which works for multiple dispatching
+    "ray>=2.50.0,<3", # parallel computing
+    "pandas>=2.2",
+    "loguru>=0.7",
+
+    "scikit-learn>=1.5",
+    "scipy>=1.12",
     "typing-extensions",
     "loguru",
     "adsorption>=0.1.2",
-    "joblib>=1.5.3",
-
-    "einops>=0.8",
-    "igraph>=0.11",
-    "joblib>=1.4",
-    "loguru>=0.7",
-    "pandas>=2.2",
-    "pydantic>=2.7",
-    "pydantic-yaml>=1.4",
-    "ray[default]>=2.43",
-    "rdkit>=2024.9",
-    "scikit-learn>=1.5",
-    "scipy>=1.12",
-    "typing-extensions>=4.12",
 ]
 [dependency-groups]
 dev = [
     "ruff>=0.11",
     "pytest>=8.3",
-    "pytest-xdist",
-    "dask-mpi",     #
+    "pytest-xdist", #
 ]
 
 # uv config
