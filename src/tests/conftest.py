@@ -1,18 +1,27 @@
+import time
+
+import numpy as np
 import pytest
+
+
+def return_big_object(i) -> np.ndarray:
+    time.sleep(0.1)
+    print(i, "adfasd")
+    return i * np.ones((10000, 200), dtype=np.float64)
 
 
 @pytest.fixture(scope="session")
 def config() -> str:
     return r"""
-output: ./outputs # the output directory, i.e. workdir
-parallel: "serial" # serial, multiprocessing, joblib, mpi4py, ray
+outputs: ./outputs # the output directory, i.e. workdir
+parallel: "serial" # serial, multiprocessing, joblib, ray
 # if hydra.verbose is true, loglevel will be set to DEBUG.
 loglevel: DEBUG # DEBUG, INFO, WARNING, ERROR
 logfile: "-" # the stderr/stdout log file
 restart: false
 hydra:
   run:
-    dir: ${output}
+    dir: ${outputs}
   verbose: true
 
 ##################################

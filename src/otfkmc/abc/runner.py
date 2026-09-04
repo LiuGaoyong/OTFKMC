@@ -5,37 +5,36 @@ os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"
 import numpy as np
 import ray
 from ase import Atoms
-from graphatoms.system import Cluster, Gas, System
-from omegaconf import DictConfig
+from graphatoms.system import Cluster, Gas, System  # type: ignore
 
-from ._base import Base
+from ._base import Base, Config
 from ._expl import hydra_parse
 
 
 class RunnerBase(Base):
     """The abstract base class for the runner."""
 
-    def __init__(self, *, config: DictConfig) -> None:
+    def __init__(self, *, config: Config) -> None:
         super().__init__(config=config)
 
         # parse the gas list
         self.gas_lst: list[Gas] = []
-        for gas in config.gas:
-            if gas is None:
-                continue
-            gas = hydra_parse(gas, Gas)
-            assert isinstance(gas, Gas)
-            assert gas.sticking is not None
-            assert gas.pressure is not None
-            self.logger.info("Read the gas:", gas)
-            self.gas_lst.append(gas)
+        # for gas in config.gas:
+        #     if gas is None:
+        #         continue
+        #     gas = hydra_parse(gas, Gas)
+        #     assert isinstance(gas, Gas)
+        #     assert gas.sticking is not None
+        #     assert gas.pressure is not None
+        #     self.logger.info("Read the gas:", gas)
+        #     self.gas_lst.append(gas)
 
         # initialize the ray cluster
         if str(self.config.parallel) == "ray":
             ray.init(ignore_reinit_error=True)
-            ncpus = int(ray.cluster_resources()["CPU"])
-            assert ncpus != 0, "Number of CPUs must be greater than 0"
-        self.ncpu_for_runner = int(config.ray.ncpu_for_runner)
+        #     ncpus = int(ray.cluster_resources()["CPU"])
+        #     assert ncpus != 0, "Number of CPUs must be greater than 0"
+        # self.ncpu_for_runner = int(config.ray.ncpu_for_runner)
 
     def atoms2system(self, inp: Atoms | None) -> None:
         if inp is None:

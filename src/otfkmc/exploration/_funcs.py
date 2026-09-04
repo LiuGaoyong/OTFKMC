@@ -1,5 +1,8 @@
+"""The basic functions for exploration"""
+
 from copy import deepcopy
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import IO, Any
 
 import ase.optimize
@@ -13,6 +16,8 @@ from ase.mep import DimerControl, MinModeAtoms
 from ase.mep.dimer import DimerTranslate, MinModeTranslate
 from ase.mep.neb import NEB, BaseNEB, DyNEB
 from ase.optimize.optimize import Dynamics, Optimizer
+from ase.units import invcm
+from ase.vibrations import Vibrations, VibrationsData
 
 OPTIMIZE_METHODS: dict[str, type[Optimizer]] = {}
 for k in ase.optimize.__all__:
@@ -343,3 +348,25 @@ def call_neb(
         logfile=logfile,
         fmax=fmax,
     )
+
+
+def vib(
+    atoms: Atoms,
+    calc: Calculator,
+    ignore_min_freq: float = 1,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Vibration atoms (frequencies in cm^-1 & harmonic modes)."""
+    if calc is not None:
+        atoms.calc = calc
+    assert atoms.calc is not None, "Please set calculator."
+    atoms.calc.reset()
+
+    with TemporaryDirectory() as tmpdir:
+        vib = Vibrations(atoms, name=tmpdir)
+        vib.run()
+        vibdata: VibrationsData = vib.get_vibrations()
+    eng, modes = vibdata.get_energies_and_modes(all_atoms=True)
+    freq = np.asarray(eng / invcm, dtype=complex)
+    freq = np.real(freq) - np.imag(freq)  # complex to real
+    freq[np.abs(freq) < abs(ignore_min_freq)] = 1e-5
+    return freq, modes

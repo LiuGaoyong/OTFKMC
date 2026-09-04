@@ -1,27 +1,23 @@
 import logging
 import os
+from pathlib import Path
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-from otfkmc.exploration._2explorer import SecondStep
-from otfkmc.runner._3match import ThirdStep
+from otfkmc.config import Config
 
 log = logging.getLogger(__name__)
 os.environ["HYDRA_FULL_ERROR"] = "1"
+config_dir = Path(__file__).parent.parent / "config"
 
 
-class Runner(ThirdStep, SecondStep):
-    """The class for running the program."""
-
-    def run(self) -> None:
-        """Run the program."""
-        self.explore()
-        self.match()
-
-
-@hydra.main(version_base=None, config_name="config", config_path=os.getcwd())
-def run(cfg: DictConfig) -> None:  # noqa: D103
+@hydra.main(
+    version_base=None,
+    config_name="run",
+    config_path=config_dir.as_posix(),
+)
+def run(cfg: Config) -> None:  # noqa: D103
     log.info("=" * 64)
     log.info("The Configuration:\n" + OmegaConf.to_yaml(cfg))
     assert isinstance(cfg, DictConfig)
@@ -42,8 +38,6 @@ def run(cfg: DictConfig) -> None:  # noqa: D103
                 "mode is not supported because this program "
                 f"will be parallelized by '{parallel}' innerly."
             )
-
-    Runner(config=cfg).run()
 
 
 if __name__ == "__main__":

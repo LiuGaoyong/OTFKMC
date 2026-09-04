@@ -12,8 +12,7 @@ from ase import Atoms
 from graphatoms.system import Cluster, Gas, System
 from omegaconf import DictConfig
 
-from otfkmc.exploration._2expl_0_Base import SecondStepABC
-from otfkmc.runner._1parser import FirstStep
+from ._0base import ExplBaseABC as SecondStepABC
 
 
 class SecondStepAds(SecondStepABC):

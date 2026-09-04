@@ -3,43 +3,39 @@ from typing import override
 
 import numpy as np
 from ase import Atoms
-from graphatoms.system import Cluster, System
+from graphatoms.system import Cluster, Gas  # type: ignore
 from omegaconf import DictConfig
 
-from otfkmc.exploration._2expl_0_Base import SecondStepABC
-from otfkmc.runner._1parser import FirstStep
+from ._0base import ExplBaseABC as SecondStepABC
 
 
 class SecondStepSurface(SecondStepABC):
     """The class for exploring the surface process."""
 
     @override
-    def _explore_serial(self, system: System) -> None:
+    def _explore_serial(self, cluster: Cluster, gas: Gas | None = None) -> None:
         """Explore the surface process."""
         result = itertools.starmap(
             helper_dimer,
             itertools.product(
                 [self],
                 [
-                    self.handle_cluster_by_core(core, system=system)
-                    for core in system.get_site_core(max_ncore=1)
+                    # self.handle_cluster_by_core(core, system=system)
+                    # for core in system.get_site_core(max_ncore=1)
                 ],
             ),
         )
         list(result)
 
     @override
-    def _explore_ray(self, system: System) -> None:
+    def _explore_ray(self, cluster: Cluster, gas: Gas | None = None) -> None:
         """Explore the surface process in ray mode."""
         raise NotImplementedError("Ray mode is not supported.")
 
 
-def helper_dimer(self: FirstStep, cluster: Cluster) -> None:
+def helper_dimer(self: SecondStepABC, cluster: Cluster) -> None:
     """Helper function for dimer process."""
     expl: DictConfig = self.config.exploration
-    assert not self.catalyst.check_induced_graph(), (
-        "The system is not a valid graph."
-    )
     assert cluster.check_induced_graph(), "The cluster is not a valid graph."
 
     # 1. save & optimize the reactant

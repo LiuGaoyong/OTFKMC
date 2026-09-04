@@ -10,6 +10,8 @@ from igraph import Graph
 from loguru._logger import Core, Logger
 from omegaconf import DictConfig, OmegaConf
 
+from otfkmc.config import Config, EventConfig
+
 
 class Base:
     """The base class for all classes.
@@ -19,17 +21,17 @@ class Base:
         2. output directory (pathlib.Path)
     """
 
-    def __init__(self, *, config: DictConfig) -> None:
-        assert isinstance(config, DictConfig)
-        self.config: DictConfig = config
-        self.path = Path(config.output)
+    def __init__(self, *, config: Config) -> None:
+        assert isinstance(config, DictConfig | Config)
+        self.config: Config = config
+        self.path = Path(config.outputs)
         self.path.mkdir(parents=True, exist_ok=True)
         for k in ["minima", "gas", "ts"]:
             (self.path / k).mkdir(parents=True, exist_ok=True)
         self.network_path = self.path / "network.lgl"
         self.network = Graph(directed=False)
 
-        loglevel = str(config.get("loglevel", "DEBUG"))
+        loglevel = str(config.get("loglevel", "DEBUG")).upper()
         try:
             hydracfg = hydra.core.hydra_config.HydraConfig.get()  # type: ignore
             outlogfile = str(hydracfg.job_logging.handlers.file.filename)
@@ -125,7 +127,7 @@ class Base:
         *,
         type: str | Literal["minima", "gas", "ts"] = "minima",
     ) -> bool:
-        event: DictConfig = self.config.event
+        event: EventConfig = self.config.event
         fmax = float(event.get("max_force", 0.05))
         if type == "ts":
             assert isinstance(cluster, Cluster)

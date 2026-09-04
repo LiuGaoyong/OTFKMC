@@ -17,14 +17,19 @@ from ase.units import invcm
 from ase.vibrations import Vibrations, VibrationsData
 from graphatoms.system import Cluster, Gas
 
-from otfkmc.abc import ExplABC
+from otfkmc.abc import ExplABC, FirstStep
+from otfkmc.config import Config
 
 from ._funcs import call_dimer as _dimer
 from ._funcs import call_neb as _neb
 from ._funcs import optimize as _optimize
 
 
-class ExplorationBase(ExplABC):
+class ExplBaseABC(ExplABC, FirstStep):
+    def __init__(self, *, config: Config) -> None:
+        FirstStep.__init__(self, config=config)
+        ExplABC.__init__(self, config=config)
+
     class OptimizationFailed(RuntimeError):
         """Optimization failed."""
 

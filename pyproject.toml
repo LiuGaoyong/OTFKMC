@@ -30,7 +30,7 @@ classifiers = [
 ]
 dependencies = [
     "ase>=3.24",
-    "graphatoms>=1.2.1", # Graph-based Atomistic Representation
+    "graphatoms>=1.2.2", # Graph-based Atomistic Representation
     # Data Model
     "h5py>=3.16",
     "hydra-core",
@@ -55,7 +55,12 @@ dependencies = [
     "typing-extensions>=4.12",
 ]
 [dependency-groups]
-dev = ["ruff>=0.11", "pytest>=8.3", "pytest-xdist"]
+dev = [
+    "ruff>=0.11",
+    "pytest>=8.3",
+    "pytest-xdist",
+    "dask-mpi",     #
+]
 
 # uv config
 [tool.uv]
