@@ -58,7 +58,7 @@ class ExplABC(Base):
 
     @abstractmethod
     def _explore_joblib(self, cluster: Cluster, gas: Gas | None = None) -> None:
-        """Explore the catalyst elemental reaction in serial mode."""
+        """Explore the catalyst elemental reaction in joblib mode."""
         pass
 
     @abstractmethod

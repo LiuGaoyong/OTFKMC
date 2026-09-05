@@ -69,10 +69,11 @@ site:
 exploration:
   maxtry: 1000
   maxconfidence: 10
-  thetacutoff: 30
   max_ncore_for_adsorption: 3 # 4, 5, 6
   allow_multiple_adsorption: false
   allow_explore_bulk: false
+  thetacutoff: 30
+  nfibonacci: 200
 
 event:
   check_frequency: true # whether to check the frequency

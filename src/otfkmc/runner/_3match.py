@@ -5,6 +5,8 @@ import numpy as np
 from graphatoms.system import Cluster, System
 from igraph import Graph
 
+from otfkmc.abc import FirstStep
+
 
 class ThirdStep:
     def match(self, system: System | None = None) -> None:

@@ -1,11 +1,10 @@
-from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import hydra
 from hydra.core.config_store import ConfigStore
-from omegaconf import MISSING, DictConfig, OmegaConf
+from omegaconf import MISSING, OmegaConf
 
 from otfkmc.config.atoms import (
     AseReadAtomsConfig,
@@ -44,6 +43,7 @@ class ExplConfig:
     allow_multiple_adsorption: bool = False
     allow_explore_bulk: bool = False
     thetacutoff: float = 30
+    nfibonacci: int = 200
 
 
 @dataclass

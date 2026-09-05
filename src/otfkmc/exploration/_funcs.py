@@ -350,7 +350,7 @@ def call_neb(
     )
 
 
-def vib(
+def call_vib(
     atoms: Atoms,
     calc: Calculator,
     ignore_min_freq: float = 1,
