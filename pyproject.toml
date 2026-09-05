@@ -50,6 +50,7 @@ dependencies = [
 dev = [
     "ruff>=0.11",
     "pytest>=8.3",
+    "pytest-env",   #
     "pytest-xdist", #
 ]
 
@@ -71,6 +72,7 @@ otfkmc-run = "otfkmc.enterpoint:run"
 
 # pytest config
 [tool.pytest.ini_options]
+env = ["RAY_DEDUP_LOGS=0"]
 filterwarnings = [
     "error", # All other warnings are transformed into errors.
     # ignore the following warnings that matching a regex

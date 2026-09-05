@@ -31,13 +31,13 @@ class Base:
         self.network_path = self.path / "network.lgl"
         self.network = Graph(directed=False)
 
-        loglevel = str(config.get("loglevel", "DEBUG")).upper()
+        loglevel = str(config.loglevel).upper()
         try:
             hydracfg = hydra.core.hydra_config.HydraConfig.get()  # type: ignore
             outlogfile = str(hydracfg.job_logging.handlers.file.filename)
         except Exception:
             outlogfile = hydracfg = None
-        outlogfile = config.get("logfile", outlogfile)
+        outlogfile = config.logfile
         assert outlogfile is not None
         outlogfile = str(outlogfile)
 
@@ -59,13 +59,19 @@ class Base:
             logfile = self.path.joinpath(logname)
             log.add(logfile, level=loglevel)
 
+        if hydracfg is not None:
+            output_dir = hydracfg.runtime.output_dir
+        else:
+            output_dir = config.outputs
+        output_dir = Path(output_dir).absolute()
+
         log.info("=" * 64)
         log.info("The Configuration:\n" + OmegaConf.to_yaml(config))
-        log.info(f"Working directory : {os.getcwd()}")
-        if hydracfg is not None:
-            log.info(f"Output directory  : {hydracfg.runtime.output_dir}")
-        log.info(f"Output logfile    : {outlogfile}")
-        log.info(f"Output loglevel   : {loglevel.upper()}")
+        log.info(f"Working floder   : {os.getcwd()}")
+        log.info(f"self.path floder : {self.path}")
+        log.info(f"Output floder    : {output_dir}")
+        log.info(f"Output logfile   : {outlogfile}")
+        log.info(f"Output loglevel  : {loglevel.upper()}")
         log.info("=" * 64)
 
         # check something
@@ -128,13 +134,13 @@ class Base:
         type: str | Literal["minima", "gas", "ts"] = "minima",
     ) -> bool:
         event: EventConfig = self.config.event
-        fmax = float(event.get("max_force", 0.05))
+        fmax = float(event.max_force)
         if type == "ts":
             assert isinstance(cluster, Cluster)
-            mfreq_ts = float(event.get("min_frequency_for_ts", 50.0))
+            mfreq_ts = float(event.min_frequency_for_ts)
             return cluster.check_ts(fmax, mfreq_ts)
         elif isinstance(cluster, Gas) or type == "minima":
-            mfreq_minima = float(event.get("min_frequency", 30.0))
+            mfreq_minima = float(event.min_frequency)
             return cluster.check_minima(fmax, mfreq_minima)
         else:
             raise ValueError(
