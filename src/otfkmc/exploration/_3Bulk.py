@@ -16,7 +16,6 @@ class SecondStepBulk(SecondStepABC):
         result = itertools.starmap(
             helper_neb,
             itertools.product(
-                [self],
                 [
                     # self.handle_cluster_by_core(core, system=system)
                     # for core in system.get_site_core(max_ncore=3)

@@ -16,7 +16,6 @@ class SecondStepSurface(SecondStepABC):
         result = itertools.starmap(
             helper_dimer,
             itertools.product(
-                [self],
                 [
                     # self.handle_cluster_by_core(core, system=system)
                     # for core in system.get_site_core(max_ncore=1)

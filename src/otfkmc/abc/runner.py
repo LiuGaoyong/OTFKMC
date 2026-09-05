@@ -1,14 +1,35 @@
 import os
 
 os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import ray
 from ase import Atoms
 from graphatoms.system import Cluster, Gas, System  # type: ignore
+from graphatoms.utils.parser import hydra_parse
 
-from ._base import Base, Config
-from ._expl import hydra_parse
+from ._base import Base, Config, DictConfig
+
+if TYPE_CHECKING:
+
+    def hydra_parse(
+        cfg: DictConfig,
+        cls: type,
+        debug: bool = False,
+        **kw,
+    ) -> Any:
+        """Parse Hydra DictConfig to instantiate an object.
+
+        Args:
+            cfg: Hydra DictConfig object.
+            cls: Target class type.
+            debug: Whether to print config for debugging.
+            **kw: Additional arguments for instantiate.
+
+        Returns:
+            Instance of cls.
+        """
 
 
 class RunnerBase(Base):
@@ -18,7 +39,7 @@ class RunnerBase(Base):
         super().__init__(config=config)
 
         # parse the gas list
-        self.gas_lst: list[Gas] = []
+        self._gas_lst: list[Gas] = []
         # for gas in config.gas:
         #     if gas is None:
         #         continue
@@ -27,7 +48,7 @@ class RunnerBase(Base):
         #     assert gas.sticking is not None
         #     assert gas.pressure is not None
         #     self.logger.info("Read the gas:", gas)
-        #     self.gas_lst.append(gas)
+        #     self._gas_lst.append(gas)
 
         # initialize the ray cluster
         if str(self.config.parallel) == "ray":
@@ -99,4 +120,3 @@ class RunnerBase(Base):
     #     )
 
 
-FirstStep = RunnerBase

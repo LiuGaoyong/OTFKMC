@@ -4,13 +4,11 @@ from pathlib import Path
 from typing import Literal
 
 import hydra
-from ase.symbols import Symbols
-from graphatoms.system import Cluster, Gas
 from igraph import Graph
 from loguru._logger import Core, Logger
 from omegaconf import DictConfig, OmegaConf
 
-from otfkmc.config import Config, EventConfig
+from otfkmc.config import Config
 
 
 class Base:
@@ -89,61 +87,3 @@ class Base:
             "choose one from 'serial', 'joblib', or 'ray'."
         )
         self.pmode: Literal["serail", "joblib", "ray"] = parallel  # type: ignore
-
-    def cluster_path(
-        self,
-        cluster: Cluster | Gas,
-        *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> Path:
-        """Get the path to the cluster."""
-        if isinstance(cluster, Gas):
-            type = "gas"
-        else:
-            assert isinstance(cluster, Cluster)
-            assert type in ("minima", "ts")
-        symbols: Symbols = cluster.symbols
-        fml: str = symbols.get_chemical_formula("metal")
-        p = self.path / type / fml
-        if not p.exists():
-            p.mkdir(parents=True, exist_ok=True)
-        return p / f"{cluster.hash}.npz"
-
-    def cluster_save(
-        self,
-        cluster: Cluster | Gas,
-        *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> None:
-        """Save the cluster."""
-        cluster.write_npz(self.cluster_path(cluster=cluster, type=type))
-
-    def cluster_exists(
-        self,
-        cluster: Cluster | Gas,
-        *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> bool:
-        """Check if the cluster exists."""
-        return self.cluster_path(cluster=cluster, type=type).exists()
-
-    def cluster_check(
-        self,
-        cluster: Cluster | Gas,
-        *,
-        type: str | Literal["minima", "gas", "ts"] = "minima",
-    ) -> bool:
-        event: EventConfig = self.config.event
-        fmax = float(event.max_force)
-        if type == "ts":
-            assert isinstance(cluster, Cluster)
-            mfreq_ts = float(event.min_frequency_for_ts)
-            return cluster.check_ts(fmax, mfreq_ts)
-        elif isinstance(cluster, Gas) or type == "minima":
-            mfreq_minima = float(event.min_frequency)
-            return cluster.check_minima(fmax, mfreq_minima)
-        else:
-            raise ValueError(
-                f"Unknown type={type}, or type(cluster)="  #
-                f"{cluster.__class__.__name__}"
-            )

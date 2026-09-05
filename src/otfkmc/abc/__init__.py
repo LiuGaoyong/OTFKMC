@@ -1,13 +1,13 @@
 """The module of abstract base classes."""
 
 from ._base import Base
-from ._expl import ExplABC, hydra_parse
-from .runner import FirstStep, RunnerBase
+from .runner import RunnerBase, hydra_parse
 
 __all__ = [
     "Base",
-    "ExplABC",
     "FirstStep",
     "RunnerBase",
     "hydra_parse",
 ]
+
+FirstStep = RunnerBase
