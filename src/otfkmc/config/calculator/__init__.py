@@ -10,7 +10,7 @@ class CalcConfig:
 
 @dataclass
 class EMTCalcConfig(CalcConfig):
-    _target_: str = "ase.calculator.emt.EMT"
+    _target_: str = "ase.calculators.emt.EMT"
 
 
 @dataclass

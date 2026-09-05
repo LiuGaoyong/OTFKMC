@@ -19,6 +19,7 @@ class SecondStepAds(SecondStepABC):
     @override
     def _explore_serial(self, cluster: Cluster, gas: Gas | None = None) -> None:
         """Explore the adsorption process."""
+        return
         result = itertools.starmap(
             helper_adsorption,
             itertools.product(
@@ -34,4 +35,5 @@ class SecondStepAds(SecondStepABC):
     @override
     def _explore_ray(self, cluster: Cluster, gas: Gas | None = None) -> None:
         """Explore the adsorption process in ray mode."""
+        return
         raise NotImplementedError("Ray mode is not supported.")

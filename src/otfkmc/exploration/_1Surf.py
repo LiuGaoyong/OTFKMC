@@ -13,6 +13,7 @@ class SecondStepSurface(SecondStepABC):
     @override
     def _explore_serial(self, cluster: Cluster, gas: Gas | None = None) -> None:
         """Explore the surface process."""
+        return
         result = itertools.starmap(
             helper_dimer,
             itertools.product(
@@ -27,4 +28,5 @@ class SecondStepSurface(SecondStepABC):
     @override
     def _explore_ray(self, cluster: Cluster, gas: Gas | None = None) -> None:
         """Explore the surface process in ray mode."""
+        return
         raise NotImplementedError("Ray mode is not supported.")

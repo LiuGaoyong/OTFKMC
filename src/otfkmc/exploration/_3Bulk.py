@@ -13,6 +13,7 @@ class SecondStepBulk(SecondStepABC):
     @override
     def _explore_serial(self, cluster: Cluster, gas: Gas | None = None) -> None:
         """Explore the bulk process."""
+        return
         result = itertools.starmap(
             helper_neb,
             itertools.product(
