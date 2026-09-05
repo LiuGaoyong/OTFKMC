@@ -65,7 +65,7 @@ def trajectory_record(container: list[Atoms], object: Dynamics) -> None:
         raise ValueError(f"Unknown type {type(object)}.")
 
 
-def optimize(
+def call_optimize(
     atoms: Atoms,
     calc: Calculator,
     *,
@@ -309,7 +309,7 @@ def call_neb(
     images: list[Atoms] = []
     assert nimages >= 3, "nimages must be at least 3."
     for k, at in zip(["first", "final"], [atoms, final_atoms]):
-        lst, converged = optimize(
+        lst, converged = call_optimize(
             at,
             calc,
             method=method4opt,
@@ -338,7 +338,7 @@ def call_neb(
         k=k4spring,
     )
     neb.interpolate(method=method4interpolate)
-    return optimize(
+    return call_optimize(
         neb,  # type: ignore
         calc,
         method=method4opt,

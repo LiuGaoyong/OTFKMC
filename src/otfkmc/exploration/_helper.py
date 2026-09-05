@@ -16,7 +16,7 @@ from igraph import Graph
 
 from otfkmc.config import Config, EventConfig, ExplConfig
 
-from ._funcs import call_dimer, call_vib, optimize
+from ._funcs import call_dimer, call_optimize, call_vib
 
 
 class OptimizationFailed(RuntimeError):
@@ -104,7 +104,7 @@ def cluster_optimization(
         print(f"Read {result.__class__.__name__.lower()}:", p)
     else:
         print("Optimization (start):", cluster)
-        lst, cvrg = optimize(
+        lst, cvrg = call_optimize(
             atoms=cluster.to_ase().copy(),
             calc=calculator,
             method=str(config.optimizer.method).upper(),
